@@ -28,17 +28,12 @@ const RegisterUser = asyncHandler(async (req, res) => {
 		password: hashedPassword,
 	});
 
-	if (user) {
-		res.status(201).json({
-			_id: user._id,
-			username: user.username,
-			email: user.email,
-			token: generateToken(user._id),
-		});
-	} else {
-		res.status(400);
-		throw new Error("Invalid user data");
-	}
+	res.status(201).json({
+		_id: user._id,
+		username: user.username,
+		email: user.email,
+		token: generateToken(user._id),
+	});
 });
 
 const LoginUser = asyncHandler(async (req, res) => {
@@ -154,7 +149,7 @@ const getMe = asyncHandler(async (req, res) => {
 	res.status(200).json(user);
 });
 
-// Generate JWT token for browser cookie
+// Generate JWT token for browser
 function generateToken(id) {
 	return jwt.sign({ id }, process.env.JWT_SECRET, {
 		expiresIn: "30d",
