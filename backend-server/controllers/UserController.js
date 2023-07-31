@@ -1,61 +1,46 @@
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/UserSchema.js");
+const {
+	registerNewUser,
+	findUserOrInsert,
+	createUserAccessToken,
+	sendUserCredentials,
+} = require("../services/userService.js");
+const { findUserById } = require("../services/middlewareService.js");
 require("dotenv").config();
 
 const RegisterUser = asyncHandler(async (req, res) => {
-	const { username, password, email } = req.body;
-
-	if (!username || !password || !email) {
-		res.status(400);
-		throw new Error("Please fill in all fields");
-	}
-
-	const userExists = await User.findOne({ email });
-
-	if (userExists) {
-		res.status(400);
-		throw new Error("User already exists");
-	}
-
-	const salt = await bcrypt.genSalt(10);
-	const hashedPassword = await bcrypt.hash(password, salt);
-
-	// Create & Save new user
-	const user = await User.create({
-		username: username,
-		email: email,
-		password: hashedPassword,
-	});
-
-	res.status(201).json({
-		_id: user._id,
-		username: user.username,
-		email: user.email,
-		token: generateToken(user._id),
-	});
+	const { username, email, password } = req.body;
+	const user = await registerNewUser(username, email, password);
+	const userCredentials = sendUserCredentials(res, user._id);
+	res.status(201).json(userCredentials);
+	// res.redirect(`${process.env.CLIENT_URL}/home`);
 });
 
 const LoginUser = asyncHandler(async (req, res) => {
-	const { email, password } = req.body;
-
-	const user = await User.findOne({ email });
-
-	if (user && (await bcrypt.compare(password, user.password))) {
-		res.json({
-			_id: user.id,
-			username: user.username,
-			email: user.email,
-			token: generateToken(user.id),
-		});
-	} else {
-		res.status(401).json({ message: "Invalid email or password" });
-		throw new Error("Invalid email or password");
-	}
+	const userCredentials = sendUserCredentials(res, req.user._id);
+	res.status(200).json(userCredentials);
+	// res.redirect(`${process.env.CLIENT_URL}/home`);
 });
 
-// Private route
+const GoogleSignInHandler = asyncHandler(async (req, res) => {
+	const user = await findUserOrInsert(
+		req.googleUser.name,
+		req.googleUser.email
+	);
+	const userCredentials = sendUserCredentials(res, user._id);
+	// res.status(201).json(userCredentials);
+	res.redirect(`${process.env.CLIENT_URL}/home`);
+});
+
+const LogoutUser = asyncHandler(async (req, res) => {
+	console.log("Logging out");
+	res.clearCookie("user");
+	res.redirect(`${process.env.CLIENT_URL}/login`);
+	// res.json({ message: "Logged out successfully" });
+});
+
 const GetUsers = asyncHandler(async (req, res) => {
 	const users = await User.find();
 
@@ -70,7 +55,6 @@ const GetUsers = asyncHandler(async (req, res) => {
 	}
 });
 
-// Private route
 const GetUser = asyncHandler(async (req, res) => {
 	const { userId } = req.params;
 
@@ -84,7 +68,6 @@ const GetUser = asyncHandler(async (req, res) => {
 	}
 });
 
-// Private route
 const UpdateUser = asyncHandler(async (req, res) => {
 	const { user } = req;
 	const { username, password, email } = req.body;
@@ -118,7 +101,6 @@ const UpdateUser = asyncHandler(async (req, res) => {
 	}
 });
 
-// Private route
 const DeleteUser = asyncHandler(async (req, res) => {
 	const { user } = req;
 	const { userId } = req.params;
@@ -138,28 +120,16 @@ const DeleteUser = asyncHandler(async (req, res) => {
 	}
 });
 
-// Private route
 const getMe = asyncHandler(async (req, res) => {
-	const { user } = req;
-
-	if (!user) {
-		res.status(401);
-		throw new Error("Not authorized");
-	}
-
+	const user = await findUserById(req.user._id);
 	res.status(200).json(user);
 });
-
-// Generate JWT token for browser
-function generateToken(id) {
-	return jwt.sign({ id }, process.env.JWT_SECRET, {
-		expiresIn: "30d",
-	});
-}
 
 module.exports = {
 	RegisterUser,
 	LoginUser,
+	GoogleSignInHandler,
+	LogoutUser,
 	GetUsers,
 	GetUser,
 	UpdateUser,

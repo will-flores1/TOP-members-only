@@ -1,9 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../middleware/AuthMiddleware.js");
+const {
+	protect,
+	registerValidation,
+	loginValidation,
+	googleAuthCodeValidation,
+} = require("../middleware/AuthMiddleware.js");
 const {
 	RegisterUser,
 	LoginUser,
+	GoogleSignInHandler,
+	LogoutUser,
 	GetUsers,
 	GetUser,
 	UpdateUser,
@@ -14,37 +21,44 @@ const {
 /*
  * @desc    Register new user user
  * @route   /api/users/register
- * @access  Public
  */
-router.post("/register", RegisterUser);
+router.post("/register", registerValidation, RegisterUser);
+
+/*
+ * @desc    User sign in
+ * @route   /api/users/login
+ */
+router.post("/login", loginValidation, LoginUser);
+
+/*
+ * @desc		Google sign in callback
+ * @route   /api/users/google/callback
+ */
+router.get("/google/callback", googleAuthCodeValidation, GoogleSignInHandler);
 
 /*
  * @desc    Login user
- * @route   /api/users/login
- * @access  Public
+ * @route   /api/users/logout
  */
-router.post("/login", LoginUser);
+router.post("/logout", protect, LogoutUser);
 
 /*
  * @desc    Register get ALL user
  * @route   /api/users/
- * @access  Public
+
  */
-router.get("/", protect, GetUsers);
+router.get("/getUsers", protect, GetUsers);
 
 /*
  * @desc    Get logged in user
  * @route   /api/users/getMe
- * @access  Private
- * @note    This route is protected by the protect middleware
- * 				which verifies the JWT token in the request header.
  */
+//Delete this route for fun
 router.get("/getMe", protect, getMe);
 
 /*
  * @desc    Update user by ID, Delete user by ID, Read user by ID
  * @route   /api/users/:userId
- * @access  Public
  */
 router
 	.route("/:userId")
@@ -53,11 +67,3 @@ router
 	.delete(protect, DeleteUser);
 
 module.exports = router;
-
-/*
- * user.save(): saves a new user to the database.
- * User.find(): retrieves all users from the database.
- * User.findById(): retrieves a specific user by its ID.
- * User.updateOne(): updates a specific user by its ID.
- * User.remove(): deletes a specific user by its ID.
- */

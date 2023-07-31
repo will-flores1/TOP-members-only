@@ -1,8 +1,8 @@
-const asyncHandler = require("express-async-handler");
-const {
-	findUserOrInsert,
-	createUserAccessToken,
-} = require("../services/googleAuthService");
+// const asyncHandler = require("express-async-handler");
+// const {
+// 	findUserOrInsert,
+// 	createUserAccessToken,
+// } = require("../services/googleAuthService");
 
 // Got URL in the client side
 // const GetGoogleAuthAppURL = (req, res) => {
@@ -56,28 +56,24 @@ const {
 // 	res.status(201).json(userCredentials);
 // });
 
-const GoogleAuthHandler = asyncHandler(async (req, res) => {
-	const { email, name } = req.googleUser;
+// const GoogleAuthHandler = asyncHandler(async (req, res) => {
+// 	const { email, name } = req.googleUser;
 
-	// Check if user exists, if not, create new user in database
-	const user = await findUserOrInsert(name, email);
+// 	// Check if user exists, if not, create new user in database
+// 	const user = await findUserOrInsert(name, email);
 
-	// Generate JWT token for browser
-	const token = createUserAccessToken(user._id);
+// 	// Generate JWT token for browser
+// 	const token = createUserAccessToken(user._id);
 
-	// Send token to browser and store in local storage for future requests
-	const userCredentials = {
-		_id: user._id,
-		token: token,
-	};
+// 	// Send token to browser and store in local storage for future requests
+// 	const userCredentials = {
+// 		_id: user._id,
+// 		token: token,
+// 	};
 
-	// res.status(201).json(userCredentials);
+// 	res.cookie("user", JSON.stringify(userCredentials), { httpOnly: true });
+// 	res.status(201).json(userCredentials);
+// 	// res.redirect(`${process.env.CLIENT_URL}/home`);
+// });
 
-	// Set user information in an HTTP-only cookie
-	res.cookie("user", JSON.stringify(userCredentials), { httpOnly: true });
-
-	// Redirect to the client's home page (replace with your client's URL)
-	res.redirect("http://localhost:4001/home");
-});
-
-module.exports = { GoogleAuthHandler };
+// module.exports = { GoogleAuthHandler };
