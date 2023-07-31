@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/UserSchema.js");
+require("dotenv").config();
 
 const RegisterUser = asyncHandler(async (req, res) => {
 	const { username, password, email } = req.body;
