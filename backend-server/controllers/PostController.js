@@ -6,7 +6,7 @@ const Post = require("../models/PostSchema.js");
 const GetPosts = asyncHandler(async (req, res) => {
 	const { user } = req;
 
-	const posts = await Post.find({ userID: user.id });
+	const posts = await Post.find({ userID: user._id });
 	if (posts) {
 		res.status(200).json(posts);
 	} else {
@@ -17,8 +17,9 @@ const GetPosts = asyncHandler(async (req, res) => {
 
 const CreatePost = asyncHandler(async (req, res) => {
 	const { user } = req;
-	const { title, body } = req.body;
-
+	const { title, body, userID, author } = req.body;
+	console.log({ user });
+	console.log({ title, body, userID, author });
 	if (!body) {
 		res.status(400);
 		throw new Error("Please add a body");
@@ -27,8 +28,8 @@ const CreatePost = asyncHandler(async (req, res) => {
 	const post = await Post.create({
 		title: title,
 		body: body,
-		userID: user.id,
-		author: user.username,
+		userID: user._id,
+		author: author,
 	});
 
 	res.json(post);
@@ -87,7 +88,10 @@ const UpdatePost = asyncHandler(async (req, res) => {
 	}
 
 	try {
-		const updatedPost = await Post.updateOne({ _id: postId }, { $set: update });
+		const updatedPost = await Post.updateOne(
+			{ _id: postId },
+			{ $set: update }
+		);
 		const post = await Post.findById(postId);
 		res.json(post);
 	} catch (err) {

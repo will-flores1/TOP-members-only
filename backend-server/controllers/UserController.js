@@ -19,8 +19,13 @@ const RegisterUser = asyncHandler(async (req, res) => {
 });
 
 const LoginUser = asyncHandler(async (req, res) => {
+	const user = await findUserById(req.user._id);
+	const payload = {
+		username: user.username,
+		email: user.email,
+	};
 	const userCredentials = sendUserCredentials(res, req.user._id);
-	res.status(200).json(userCredentials);
+	res.status(200).json(payload);
 	// res.redirect(`${process.env.CLIENT_URL}/home`);
 });
 
@@ -29,15 +34,19 @@ const GoogleSignInHandler = asyncHandler(async (req, res) => {
 		req.googleUser.name,
 		req.googleUser.email
 	);
+	const payload = {
+		username: user.username,
+		email: user.email,
+	};
 	const userCredentials = sendUserCredentials(res, user._id);
-	// res.status(201).json(userCredentials);
-	res.redirect(`${process.env.CLIENT_URL}/home`);
+	res.status(201).json(payload);
+	// res.redirect(`${process.env.CLIENT_URL}/home`);
 });
 
 const LogoutUser = asyncHandler(async (req, res) => {
-	console.log("Logging out");
 	res.clearCookie("user");
-	res.redirect(`${process.env.CLIENT_URL}/login`);
+	res.status(200).json({ message: "Logged out successfully" });
+	// res.redirect(`${process.env.CLIENT_URL}/login`);
 	// res.json({ message: "Logged out successfully" });
 });
 
@@ -135,4 +144,4 @@ module.exports = {
 	UpdateUser,
 	DeleteUser,
 	getMe,
-};
+};12
