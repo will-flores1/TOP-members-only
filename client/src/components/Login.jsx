@@ -23,7 +23,7 @@ function Login() {
 		<>
 			<h1>Login</h1>
 			<div>
-				<a href={getGoogleOAuthURL()}>Login with Google</a>
+				<a href={getGoogleOAuthURL}>Login with Google</a>
 			</div>
 		</>
 	);

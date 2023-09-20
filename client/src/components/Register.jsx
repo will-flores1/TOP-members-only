@@ -34,7 +34,7 @@ function Register() {
 		<>
 			<h1>Register</h1>
 			<div>
-				<a href={getGoogleOAuthURL()}>Login with Google</a>
+				<a href={getGoogleOAuthURL}>Login with Google</a>
 			</div>
 		</>
 	);
